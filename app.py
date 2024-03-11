@@ -3,15 +3,16 @@ from flask import Flask, request, url_for, session, redirect, render_template
 
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
+from credentials import CLIENT_ID, CLIENT_SECRET, SECRET_KEY
 import time
 from time import gmtime, strftime
 import os
     
 # Defining Consts
-CLIENT_ID = "23fdd7a758474991839239498a95773e"
-CLIENT_SECRET = "b3c0478f7b484e019a627c5e6333dc4a"
-TOKEN_INFO = "token_info"
-SECRET_KEY = "secret_key"
+TOKEN_CODE = "token_info"
+SHORT_TERM = "short_term"
+MEDIUM_TERM = "medium_term"
+LONG_TERM = "long_term"
 
 def create_spotify_oauth():
     return SpotifyOAuth(
@@ -23,11 +24,13 @@ def create_spotify_oauth():
 
 app = Flask(__name__)
 app.secret_key = SECRET_KEY
+app.config['SESSION-COOKIE-NAME'] = "Chilis Cookie"
 
-@app.route("/")
-def hello_world():
-    return render_template('index.html', title="Welcome to Receiptify")
-    
+@app.route('/')
+def index():
+    name = 'username'
+    return render_template('index.html', title='Welcome', username=name)
+
 # creates a page for logging in
 @app.route("/login")
 def login():
@@ -42,12 +45,19 @@ def redirectPage():
     session.clear()
     code = request.args.get('code')
     token_info = sp_oauth.get_access_token(code)
-    session[TOKEN_INFO] = token_info
+    session[TOKEN_CODE] = token_info
     return redirect(url_for("receipt", _external=True))
 
-def get_token():
-    token_info = session.get(TOKEN_INFO, None)
-    return token_info
+def get_token(): 
+    token_info = session.get(TOKEN_CODE, None)
+    if not token_info: 
+        raise "exception"
+    now = int(time.time())
+    is_expired = token_info['expires_at'] - now < 60 
+    if (is_expired): 
+        sp_oauth = create_spotify_oauth()
+        token_info = sp_oauth.refresh_access_token(token_info['refresh_token'])
+    return token_info 
 
 # creates a page where it returns a receipt
 @app.route("/receipt")
@@ -87,4 +97,19 @@ def getTracks():
     if os.path.exists(".cache"): 
         os.remove(".cache")
 
-    return render_template('receipt.html', short_term=short_term, medium_term=medium_term, long_term=long_term, currentTime=getTime())
+    return render_template('receipt.html', short_term=short_term, medium_term=medium_term, long_term=long_term, currentTime=gmtime())
+
+@app.template_filter('strftime')
+def _jinja2_filter_datetime(date, fmt=None):
+    return strftime("%a, %d %b %Y", date)
+
+@app.template_filter('mmss')
+def _jinja2_filter_miliseconds(time, fmt=None):
+    time = int(time / 1000)
+    minutes = time // 60 
+    seconds = time % 60 
+    if seconds < 10: 
+        return str(minutes) + ":0" + str(seconds)
+    return str(minutes) + ":" + str(seconds ) 
+
+app.run(debug=True)
