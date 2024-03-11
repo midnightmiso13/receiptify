@@ -2,10 +2,14 @@ from flask import Flask, request, url_for, session, redirect, render_template
 
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
-from credentials import CLIENT_ID, CLIENT_SECRET, SECRET_KEY
 import time
-from time import gmtime, strftime
 import os
+from time import gmtime, strftime
+from decouple import config
+
+CLIENT_ID = config('client_id')
+CLIENT_SECRET = config('client_secret')
+SECRET_KEY = config('secret_key')
     
 # Defining Consts
 TOKEN_CODE = "token_info"
