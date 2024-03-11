@@ -1,7 +1,11 @@
 from flask import Flask, request, url_for, session, redirect, render_template
 
+
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
+import time
+from time import gmtime, strftime
+import os
     
 # Defining Consts
 CLIENT_ID = "23fdd7a758474991839239498a95773e"
@@ -52,7 +56,18 @@ def receipt():
     sp = spotipy.Spotify(
         auth=user_token['access_token']
     )
+@app.route('/getTracks')
+def getTracks():
+    try: 
+        token_info = get_token()
+    except: 
+        print("user not logged in")
+        return redirect("/")
+    sp = spotipy.Spotify(
+        auth=token_info['access_token'],
+    )
 
+    current_user_name = sp.current_user()['display_name']
     short_term = sp.current_user_top_tracks(
         limit = 10,
         offset = 0,
@@ -68,4 +83,8 @@ def receipt():
         offset = 0,
         time_range = "long_term"
     )
+
+    if os.path.exists(".cache"): 
+        os.remove(".cache")
+
     return render_template('receipt.html', short_term=short_term, medium_term=medium_term, long_term=long_term, currentTime=getTime())
