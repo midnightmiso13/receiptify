@@ -1,0 +1,49 @@
+<html>
+    <head>
+        <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+        <title>{{ title }}</title>
+    </head>
+    <body>
+
+        {% from "receiptContainer.html" import receiptContainer with context %}
+
+        <script>
+
+            var activeReceipt;
+
+            function showContent(id) {
+                for (let i = 0; i < document.querySelectorAll(".receiptContainer").length; i++) {
+                    document.querySelectorAll(".receiptContainer")[i].style.display = "none"
+                } 
+                document.getElementById(id).style.display = 'inline-block'
+                document.getElementById('downloadPicButton').style.display = 'inline-block'
+                activeReceipt = id
+
+            }
+        </script>
+
+        <div>
+            <center>
+                <h1>Receiptify</h1>
+                <h2>Top Track Generator</h2>
+            </center>
+        </div>
+
+        <div style="width: 100%; height: auto" class="buttons">
+            <center>
+                <button onclick="showContent('short_term_receipt')" class="generatePicButton">Last Month</button>
+                <button onclick="showContent('medium_term_receipt')" class="generatePicButton">Last 6 Months</button>
+                <button onclick="showContent('long_term_receipt')" class="generatePicButton">All Time</button>
+            </center>
+        </div>
+        
+        <div style="width: 100%; height: auto" class="receiptContainerWrapper">
+            <center>
+                {{ receiptContainer(short_term['items'], 'short_term_receipt', 'LAST MONTH') }}
+                {{ receiptContainer(medium_term['items'], 'medium_term_receipt', 'LAST 6 MONTHS') }}
+                {{ receiptContainer(long_term['items'], 'long_term_receipt', 'ALL TIME') }}
+            </center>
+
+        </div>
+    </body>
+</html>
