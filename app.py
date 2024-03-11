@@ -1,6 +1,5 @@
 from flask import Flask, request, url_for, session, redirect, render_template
 
-
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 from credentials import CLIENT_ID, CLIENT_SECRET, SECRET_KEY
@@ -29,7 +28,7 @@ app.config['SESSION-COOKIE-NAME'] = "Chilis Cookie"
 @app.route('/')
 def index():
     name = 'username'
-    return render_template('index.html', title='Welcome', username=name)
+    return render_template('index.html', title='Receiptify', username=name)
 
 # creates a page for logging in
 @app.route("/login")
@@ -46,7 +45,7 @@ def redirectPage():
     code = request.args.get('code')
     token_info = sp_oauth.get_access_token(code)
     session[TOKEN_CODE] = token_info
-    return redirect(url_for("receipt", _external=True))
+    return redirect(url_for("getTracks", _external=True))
 
 def get_token(): 
     token_info = session.get(TOKEN_CODE, None)
@@ -59,13 +58,6 @@ def get_token():
         token_info = sp_oauth.refresh_access_token(token_info['refresh_token'])
     return token_info 
 
-# creates a page where it returns a receipt
-@app.route("/receipt")
-def receipt():
-    user_token = get_token()
-    sp = spotipy.Spotify(
-        auth=user_token['access_token']
-    )
 @app.route('/getTracks')
 def getTracks():
     try: 
