@@ -24,7 +24,7 @@ app.secret_key = SECRET_KEY
 def hello_world():
     return render_template('index.html', title="Welcome to Receiptify")
     
-# creates a page for login
+# creates a page for logging in
 @app.route("/login")
 def login():
     sp_oauth = create_spotify_oauth()
